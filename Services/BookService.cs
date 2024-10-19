@@ -53,7 +53,7 @@ public class BookService : IBookService
     {
         try
         {
-            _logger.LogTrace("Adding book: {bookDto}",bookDto.ToString());
+            _logger.LogTrace("Adding book: {@bookDto}",bookDto);
             await _bookRepository.AddBookAsync(bookDto);
             return bookDto;
         }
@@ -67,7 +67,7 @@ public class BookService : IBookService
     {
         try
         {
-            _logger.LogTrace("Updating book: {bookDto}",bookDto.ToString());
+            _logger.LogTrace("Updating book: {@bookDto}",bookDto);
             await _bookRepository.UpdateBookAsync(bookDto);
         }
         catch (KeyNotFoundException)

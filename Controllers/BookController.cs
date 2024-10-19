@@ -59,6 +59,11 @@ public class BookController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddBook(BookDto bookDto)
     {
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("Invalid book data submitted: {@BookDto}", bookDto);
+            return BadRequest(ModelState);
+        }
         try
         {
             _logger.LogInformation("Adding new book {Book}", bookDto);
