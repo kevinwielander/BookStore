@@ -10,15 +10,18 @@ namespace BookStore.Controllers;
 public class BookController : ControllerBase
 {
     private readonly IBookService _bookService;
+    private readonly ILogger<BookController> _logger;
 
-    public BookController(IBookService bookService)
+    public BookController(IBookService bookService, ILogger<BookController> logger)
     {
         _bookService = bookService;
+        _logger = logger;
     }
     
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookDTO>>> GetAllBooks()
     {
+        _logger.Log(LogLevel.Information, "Getting all books");
         var books = await _bookService.GetAllBooksAsync();
         return Ok(books);
     }
