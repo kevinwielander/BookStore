@@ -8,16 +8,19 @@ namespace BookStore.Repositories;
 public class BookRepository : IBookRepository
 {
     private readonly DbContext _context;
+    private readonly ILogger<BookRepository> _logger;
     
 
-    public BookRepository(DbContext context)
+    public BookRepository(DbContext context, ILogger<BookRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
 
     public async Task<IEnumerable<BookDto>> GetBooksAsync()
     {
+        _logger.LogTrace("Retrieving books");
         var books = await _context.Set<Book>()
             .AsNoTracking()
             .ToListAsync();
@@ -27,6 +30,7 @@ public class BookRepository : IBookRepository
 
     public async Task<BookDto> GetBookByIdAsync(string isbn)
     {
+        _logger.LogTrace("Retrieving book with isbn {isbn}",isbn);
         var book = await _context.Set<Book>().FindAsync(isbn);
         if (book == null)
         {
