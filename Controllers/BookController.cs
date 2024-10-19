@@ -19,17 +19,17 @@ public class BookController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BookDTO>>> GetAllBooks()
+    public async Task<ActionResult<IEnumerable<BookDto>>> GetAllBooks()
     {
         _logger.Log(LogLevel.Information, "Getting all books");
         var books = await _bookService.GetAllBooksAsync();
         return Ok(books);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<BookDTO>> GetBookById(int id)
+    [HttpGet("{isbn}")]
+    public async Task<ActionResult<BookDto>> GetBookByIsbn(string isbn)
     {
-        var book = await _bookService.GetBookByIdAsync(id);
+        var book = await _bookService.GetBookByIdAsync(isbn);
         if (book == null)
         {
             return NotFound();
@@ -38,24 +38,24 @@ public class BookController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> AddBook(BookDTO bookDto)
+    public async Task<IActionResult> AddBook(BookDto bookDto)
     {
         var createdBook = await _bookService.AddBookAsync(bookDto);
-        return CreatedAtAction(nameof(GetBookById), new { id = createdBook.Id }, createdBook);
+        return CreatedAtAction(nameof(GetBookByIsbn), new { isbn = createdBook.Isbn }, createdBook);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBook(int id, BookDTO bookDto)
+    [HttpPut("{isbn}")]
+    public async Task<IActionResult> UpdateBook(string isbn, BookDto bookDto)
     {
-        if (id != bookDto.Id) return BadRequest();
+        if (isbn != bookDto.Isbn) return BadRequest();
         await _bookService.UpdateBookAsync(bookDto);
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteBook(int id)
+    [HttpDelete("{isbn}")]
+    public async Task<IActionResult> DeleteBook(string isbn)
     {
-        await _bookService.DeleteBookAsync(id);
+        await _bookService.DeleteBookAsync(isbn);
         return NoContent();
     }
     

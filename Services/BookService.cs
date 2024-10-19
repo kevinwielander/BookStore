@@ -13,7 +13,7 @@ public class BookService : IBookService
     }
 
 
-    public async Task<List<BookDTO>> GetAllBooksAsync()
+    public async Task<List<BookDto>> GetAllBooksAsync()
     {
         try
         {
@@ -27,11 +27,11 @@ public class BookService : IBookService
         }
     }
 
-    public async Task<BookDTO> GetBookByIdAsync(int id)
+    public async Task<BookDto> GetBookByIdAsync(string isbn)
     {
         try
         {
-            var book = await _bookRepository.GetBookByIdAsync(id);
+            var book = await _bookRepository.GetBookByIdAsync(isbn);
             return book;
         }
         catch (KeyNotFoundException)
@@ -41,11 +41,11 @@ public class BookService : IBookService
         catch (Exception ex)
         {
             // exception logging
-            throw new ApplicationException($"Error occurred while fetching book with id {id}", ex);
+            throw new ApplicationException($"Error occurred while fetching book with isbn {isbn}", ex);
         }
     }
 
-    public async Task<BookDTO> AddBookAsync(BookDTO bookDto)
+    public async Task<BookDto> AddBookAsync(BookDto bookDto)
     {
         try
         {
@@ -59,7 +59,7 @@ public class BookService : IBookService
         }
     }
 
-    public async Task UpdateBookAsync(BookDTO bookDto)
+    public async Task UpdateBookAsync(BookDto bookDto)
     {
         try
         {
@@ -71,15 +71,15 @@ public class BookService : IBookService
         }
         catch (Exception ex)
         {
-            throw new ApplicationException($"Error occurred while updating book with id {bookDto.Id}", ex);
+            throw new ApplicationException($"Error occurred while updating book with isbn {bookDto.Isbn}", ex);
         }
     }
 
-    public async Task DeleteBookAsync(int id)
+    public async Task DeleteBookAsync(string isbn)
     {
         try
         {
-            await _bookRepository.DeleteBookAsync(id);
+            await _bookRepository.DeleteBookAsync(isbn);
         }
         catch (KeyNotFoundException)
         {
@@ -87,7 +87,7 @@ public class BookService : IBookService
         }
         catch (Exception ex)
         {
-            throw new ApplicationException($"Error occurred while deleting book with id {id}", ex);
+            throw new ApplicationException($"Error occurred while deleting book with isbn {isbn}", ex);
         }
     }
 }

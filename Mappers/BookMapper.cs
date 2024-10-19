@@ -5,11 +5,11 @@ namespace BookStore.Mappers;
 
 public class BookMapper
 {
-    public static BookDTO ToDto(Book book)
+    public static BookDto ToDto(Book book)
     {
-        return new BookDTO
+        return new BookDto
         {
-            Id = book.Id,
+            Isbn = book.Isbn,
             Title = book.Title,
             Description = book.Description,
             PublishDate = book.PublishDate,
@@ -17,11 +17,11 @@ public class BookMapper
         };
     }
 
-    public static Book ToModel(BookDTO bookDto)
+    public static Book ToModel(BookDto bookDto)
     {
         return new Book
         {
-            Id = bookDto.Id,
+            Isbn = bookDto.Isbn,
             Title = bookDto.Title,
             Description = bookDto.Description,
             PublishDate = bookDto.PublishDate,

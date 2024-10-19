@@ -4,9 +4,9 @@ namespace BookStore.Repositories;
 
 public interface IBookRepository
 {
-    Task<IEnumerable<BookDTO>> GetBooksAsync();
-    Task<BookDTO> GetBookByIdAsync(int id);
-    Task AddBookAsync(BookDTO bookDto);
-    Task UpdateBookAsync(BookDTO bookDto);
-    Task DeleteBookAsync(int id);
+    Task<IEnumerable<BookDto>> GetBooksAsync();
+    Task<BookDto> GetBookByIdAsync(string isbn);
+    Task AddBookAsync(BookDto bookDto);
+    Task UpdateBookAsync(BookDto bookDto);
+    Task DeleteBookAsync(string isbn);
 }
