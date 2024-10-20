@@ -1,5 +1,6 @@
 using BookStore.Data;
 using BookStore.DTOs;
+using BookStore.Mappers;
 using BookStore.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,7 +34,14 @@ public class BookAuditController(IAuditService auditService, ILogger<BookAuditCo
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
-            var result = await auditService.GetAuditLogsAsync(queryParameters);
+            var intermediate = await auditService.GetAuditLogsAsync(queryParameters);
+            var result = new PagedResultDto<BookLogDto>
+            {
+                Items = intermediate.Items.Select(BookLogMapper.ToDto),
+                PageNumber = queryParameters.PageNumber,
+                PageSize = queryParameters.PageSize,
+                TotalCount = intermediate.TotalCount
+            };
             return Ok(result);
         }
         catch (Exception ex)

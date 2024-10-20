@@ -5,9 +5,9 @@ namespace BookStore.Services;
 
 public interface IBookService
 {
-    Task<List<BookDto>> GetAllBooksAsync();
-    Task<BookDto> GetBookByIdAsync(string isbn);
-    Task<BookDto> AddBookAsync(BookDto bookDto);
-    Task UpdateBookAsync(BookDto bookDto);
+    Task<List<Book>> GetAllBooksAsync();
+    Task<Book> GetBookByIdAsync(string isbn);
+    Task<Book> AddBookAsync(Book book);
+    Task UpdateBookAsync(Book book);
     Task DeleteBookAsync(string isbn);
 }

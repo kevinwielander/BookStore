@@ -1,12 +1,13 @@
 using BookStore.DTOs;
+using BookStore.Models;
 
 namespace BookStore.Repositories;
 
 public interface IBookRepository
 {
-    Task<IEnumerable<BookDto>> GetBooksAsync();
-    Task<BookDto> GetBookByIdAsync(string isbn);
-    Task AddBookAsync(BookDto bookDto);
-    Task UpdateBookAsync(BookDto bookDto);
+    Task<IEnumerable<Book>> GetBooksAsync();
+    Task<Book> GetBookByIdAsync(string isbn);
+    Task AddBookAsync(Book book);
+    Task UpdateBookAsync(Book book);
     Task DeleteBookAsync(string isbn);
 }

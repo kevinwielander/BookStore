@@ -1,5 +1,6 @@
 using BookStore.DTOs;
 using BookStore.Exceptions;
+using BookStore.Models;
 using BookStore.Repositories;
 
 namespace BookStore.Services.Implementation;
@@ -7,7 +8,7 @@ namespace BookStore.Services.Implementation;
 public class BookService(IBookRepository bookRepository, ILogger<BookService> logger, IAuditService auditService)
     : IBookService
 {
-    public async Task<List<BookDto>> GetAllBooksAsync()
+    public async Task<List<Book>> GetAllBooksAsync()
     {
         try
         {
@@ -22,7 +23,7 @@ public class BookService(IBookRepository bookRepository, ILogger<BookService> lo
         }
     }
 
-    public async Task<BookDto> GetBookByIdAsync(string isbn)
+    public async Task<Book> GetBookByIdAsync(string isbn)
     {
         try
         {
@@ -41,20 +42,20 @@ public class BookService(IBookRepository bookRepository, ILogger<BookService> lo
         }
     }
 
-    public async Task<BookDto> AddBookAsync(BookDto bookDto)
+    public async Task<Book> AddBookAsync(Book book)
     {
         try
         {
-            logger.LogTrace("Adding book: {@bookDto}",bookDto);
-            await bookRepository.AddBookAsync(bookDto);
-            await auditService.LogChangeAsync(bookDto.Isbn, "Created", new Dictionary<string, object>
+            logger.LogTrace("Adding book: {@book}",book);
+            await bookRepository.AddBookAsync(book);
+            await auditService.LogChangeAsync(book.Isbn, "Created", new Dictionary<string, object>
             {
-                { "Title", bookDto.Title },
-                { "Description", bookDto.Description },
-                { "PublishDate", bookDto.PublishDate },
-                { "Authors", bookDto.Authors }
+                { "Title", book.Title },
+                { "Description", book.Description },
+                { "PublishDate", book.PublishDate },
+                { "Authors", book.Authors }
             });
-            return bookDto;
+            return book;
         }
         catch (BookAlreadyExistsException ex)
         {
@@ -66,32 +67,33 @@ public class BookService(IBookRepository bookRepository, ILogger<BookService> lo
         }
     }
 
-    public async Task UpdateBookAsync(BookDto bookDto)
+    public async Task UpdateBookAsync(Book book)
     {
         try
         {
-            logger.LogTrace("Updating book: {@bookDto}", bookDto);
-            var originalBook = await bookRepository.GetBookByIdAsync(bookDto.Isbn);
-            await bookRepository.UpdateBookAsync(bookDto);
+            logger.LogTrace("Updating book: {@book}", book);
+            var originalBook = await bookRepository.GetBookByIdAsync(book.Isbn);
+            await bookRepository.UpdateBookAsync(book);
         
             var changes = new Dictionary<string, object>();
-            if (originalBook.Title != bookDto.Title)
-                changes["Title"] = new { Old = originalBook.Title, New = bookDto.Title };
-            if (originalBook.Description != bookDto.Description)
-                changes["Description"] = new { Old = originalBook.Description, New = bookDto.Description };
-            if (originalBook.PublishDate != bookDto.PublishDate)
-                changes["PublishDate"] = new { Old = originalBook.PublishDate, New = bookDto.PublishDate };
-            if (!originalBook.Authors.SequenceEqual(bookDto.Authors))
-                changes["Authors"] = new { Old = originalBook.Authors, New = bookDto.Authors };
-
+            if (originalBook.Title != book.Title)
+                changes["Title"] = new { Old = originalBook.Title, New = book.Title };
+            if (originalBook.Description != book.Description)
+                changes["Description"] = new { Old = originalBook.Description, New = book.Description };
+            if (originalBook.PublishDate != book.PublishDate)
+                changes["PublishDate"] = new { Old = originalBook.PublishDate, New = book.PublishDate };
+            if (!originalBook.Authors.SequenceEqual(book.Authors))
+                changes["Authors"] = new { Old = originalBook.Authors, New = book.Authors };
+            
+            logger.LogDebug("Changes detected: {@Changes}", changes);
             if (changes.Count != 0)
             {
-                await auditService.LogChangeAsync(bookDto.Isbn, "Updated", changes);
+                await auditService.LogChangeAsync(book.Isbn, "Updated", changes);
             }
         }
         catch (Exception ex)
         {
-            throw new ApplicationException($"Error occurred while updating book with isbn {bookDto.Isbn}", ex);
+            throw new ApplicationException($"Error occurred while updating book with isbn {book.Isbn}", ex);
         }
     }
     public async Task DeleteBookAsync(string isbn)

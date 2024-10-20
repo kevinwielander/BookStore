@@ -1,5 +1,6 @@
 using BookStore.DTOs;
 using BookStore.Exceptions;
+using BookStore.Mappers;
 using BookStore.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +19,8 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
             logger.LogInformation("Retrieving all books");
             var books = await bookService.GetAllBooksAsync();
             logger.LogInformation("Retrieved {Count} books", books.Count);
-            return Ok(books);
+            var bookDtos = books.Select(BookMapper.ToDto).ToList();
+            return Ok(bookDtos);
         }
         catch (Exception ex)
         {
@@ -34,12 +36,13 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
         {
             logger.LogInformation("Retrieving book with ISBN {Isbn}", isbn);
             var book = await bookService.GetBookByIdAsync(isbn);
-            if (book == null)
-            {
-                logger.LogWarning("Book with ISBN {Isbn} not found", isbn);
-                return NotFound($"Book with ISBN {isbn} not found");
-            }
-            return Ok(book);
+            var bookDto = BookMapper.ToDto(book);
+            return Ok(bookDto);
+        }
+        catch (KeyNotFoundException)
+        {
+            logger.LogWarning("Book with ISBN {Isbn} not found", isbn);
+            return NotFound($"Book with ISBN {isbn} not found");
         }
         catch (Exception ex)
         {
@@ -58,8 +61,9 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
         }
         try
         {
-            logger.LogInformation("Adding new book {Book}", bookDto);
-            var createdBook = await bookService.AddBookAsync(bookDto);
+            logger.LogInformation("Adding new book {bookDto}", bookDto);
+            var book = BookMapper.ToModel(bookDto);
+            var createdBook = await bookService.AddBookAsync(book);
             logger.LogInformation("Book added successfully with ISBN {Isbn}", createdBook.Isbn);
             return CreatedAtAction(nameof(GetBookByIsbn), new { isbn = createdBook.Isbn }, createdBook);
         }
@@ -87,7 +91,8 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
         try
         {
             logger.LogInformation("Updating book with ISBN {Isbn}", isbn);
-            await bookService.UpdateBookAsync(bookDto);
+            var book = BookMapper.ToModel(bookDto);
+            await bookService.UpdateBookAsync(book);
             return NoContent();
         }
         catch (KeyNotFoundException ex)

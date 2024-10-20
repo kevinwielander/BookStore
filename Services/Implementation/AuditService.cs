@@ -20,7 +20,7 @@ public class AuditService(IAuditRepository auditRepository) : IAuditService
         await auditRepository.AddAuditLogAsync(auditLog);
     }
 
-    public async Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParams queryParameters)
+    public async Task<AuditPageResult<BookAuditLog>> GetAuditLogsAsync(BookLogQueryParams queryParameters)
     {
         return await auditRepository.GetAuditLogsAsync(queryParameters);
     }

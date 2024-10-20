@@ -14,7 +14,7 @@ public class AuditRepository(BookStoreContext context) : IAuditRepository
         await context.SaveChangesAsync();
     }
 
-   public async Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParams queryParameters)
+   public async Task<AuditPageResult<BookAuditLog>> GetAuditLogsAsync(BookLogQueryParams queryParameters)
     {
         var query = context.AuditLogs.AsQueryable();
         
@@ -57,24 +57,21 @@ public class AuditRepository(BookStoreContext context) : IAuditRepository
             .Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)
             .Take(queryParameters.PageSize)
             .ToListAsync();
-
-        var bookLogDtos = auditLogs.Select(BookLogMapper.ToDto).ToList();
+        
         
         if (!string.IsNullOrEmpty(queryParameters.GroupByKey))
         {
-            bookLogDtos = queryParameters.GroupByKey.ToLower() switch
+            auditLogs = queryParameters.GroupByKey.ToLower() switch
             {
-                "action" => bookLogDtos.GroupBy(log => log.Action).SelectMany(g => g).ToList(),
-                _ => bookLogDtos.GroupBy(log => log.ChangeTime.Date).SelectMany(g => g).ToList()
+                "action" => auditLogs.GroupBy(log => log.Action).SelectMany(g => g).ToList(),
+                _ => auditLogs.GroupBy(log => log.Timestamp.Date).SelectMany(g => g).ToList()
             };
         }
 
-        return new PagedResultDto<BookLogDto>
+        return new AuditPageResult<BookAuditLog>()
         {
-            Items = bookLogDtos,
+            Items = auditLogs,
             TotalCount = totalCount,
-            PageNumber = queryParameters.PageNumber,
-            PageSize = queryParameters.PageSize
         };
     }
 }

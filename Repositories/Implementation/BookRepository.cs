@@ -9,17 +9,17 @@ namespace BookStore.Repositories.Implementation;
 
 public class BookRepository(BookStoreContext context, ILogger<BookRepository> logger) : IBookRepository
 {
-    public async Task<IEnumerable<BookDto>> GetBooksAsync()
+    public async Task<IEnumerable<Book>> GetBooksAsync()
     {
         logger.LogTrace("Retrieving books");
         var books = await context.Set<Book>()
             .AsNoTracking()
             .ToListAsync();
 
-        return books.Select(BookMapper.ToDto);
+        return books;
     }
 
-    public async Task<BookDto> GetBookByIdAsync(string isbn)
+    public async Task<Book> GetBookByIdAsync(string isbn)
     {
         logger.LogTrace("Retrieving book with isbn {isbn}",isbn);
         var book = await context.Set<Book>().FindAsync(isbn);
@@ -27,31 +27,29 @@ public class BookRepository(BookStoreContext context, ILogger<BookRepository> lo
         {
             throw new KeyNotFoundException($"Book with isbn {isbn} not found");
         }
-        return BookMapper.ToDto(book);
+
+        return book;
     }
 
-    public async Task AddBookAsync(BookDto bookDto)
+    public async Task AddBookAsync(Book book)
     {
-        var existingBook = await context.Set<Book>().FindAsync(bookDto.Isbn);
+        var existingBook = await context.Set<Book>().FindAsync(book.Isbn);
         if (existingBook != null)
         {
-            throw new BookAlreadyExistsException(bookDto.Isbn);
+            throw new BookAlreadyExistsException(book.Isbn);
         }
-        var book = BookMapper.ToModel(bookDto);
         await context.Set<Book>().AddAsync(book);
         await context.SaveChangesAsync();
     }
 
-    public async Task UpdateBookAsync(BookDto bookDto)
+    public async Task UpdateBookAsync(Book book)
     {
-        var book = BookMapper.ToModel(bookDto);
-        var existingBook = await context.Set<Book>().FindAsync(bookDto.Isbn);
+        var existingBook = await context.Set<Book>().FindAsync(book.Isbn);
         if (existingBook == null)
         {
-            throw new KeyNotFoundException($"Book with id {bookDto.Isbn} not found");
+            throw new KeyNotFoundException($"Book with id {book.Isbn} not found");
         }
-        var updatedBook = BookMapper.ToModel(bookDto);
-        context.Entry(existingBook).CurrentValues.SetValues(updatedBook);
+        context.Entry(existingBook).CurrentValues.SetValues(book);
         await context.SaveChangesAsync();
     }
 
