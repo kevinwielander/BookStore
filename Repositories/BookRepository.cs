@@ -54,7 +54,8 @@ public class BookRepository : IBookRepository
         {
             throw new KeyNotFoundException($"Book with id {bookDto.Isbn} not found");
         }
-        _context.Entry(book).State = EntityState.Modified;
+        var updatedBook = BookMapper.ToModel(bookDto);
+        _context.Entry(existingBook).CurrentValues.SetValues(updatedBook);
         await _context.SaveChangesAsync();
     }
 

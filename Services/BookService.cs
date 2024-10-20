@@ -65,8 +65,6 @@ public class BookService(IBookRepository bookRepository, ILogger<BookService> lo
     {
         try
         {
-            logger.LogTrace("Updating book: {@bookDto}",bookDto);
-            await bookRepository.UpdateBookAsync(bookDto);
             logger.LogTrace("Updating book: {@bookDto}", bookDto);
             var originalBook = await bookRepository.GetBookByIdAsync(bookDto.Isbn);
             await bookRepository.UpdateBookAsync(bookDto);

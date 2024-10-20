@@ -14,7 +14,7 @@ public class BookLogMapper
         return new BookLogDto
         {
             Isbn = auditLog.Isbn,
-            ChangeTime = auditLog.Timestamp.ToString("o"),
+            ChangeTime = auditLog.Timestamp,
             Action = auditLog.Action,
             Description = description
         };
@@ -27,7 +27,11 @@ public class BookLogMapper
             case "Created":
                 return "Book was created";
             case "Updated":
-                return string.Join(", ", changes.Select(c => $"{c.Key} was changed"));
+                return string.Join(", ", changes.Select(c => 
+                {
+                    var change = JsonSerializer.Deserialize<Dictionary<string, string>>(c.Value.ToString());
+                    return $"{c.Key} was changed from '{change["Old"]}' to '{change["New"]}'";
+                }));
             case "Deleted":
                 return "Book was deleted";
             default:

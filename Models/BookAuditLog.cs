@@ -11,7 +11,7 @@ public class BookAuditLog
     public string ChangeDetails { get; set; }
 
     [NotMapped]
-    public Dictionary<string, object> Changes 
+    public Dictionary<string, object> Changes
     {
         get => JsonSerializer.Deserialize<Dictionary<string, object>>(ChangeDetails);
         set => ChangeDetails = JsonSerializer.Serialize(value);
