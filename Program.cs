@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors();
+
 builder.Services.AddControllers();
 builder.Services.AddDbContext<BookStoreContext>(opt => opt.UseInMemoryDatabase("Books"));
 builder.Services.AddScoped<IBookRepository, BookRepository>();
