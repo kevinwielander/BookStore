@@ -2,7 +2,7 @@ using BookStore.DTOs;
 using BookStore.Exceptions;
 using BookStore.Repositories;
 
-namespace BookStore.Services;
+namespace BookStore.Services.Implementation;
 
 public class BookService(IBookRepository bookRepository, ILogger<BookService> logger, IAuditService auditService)
     : IBookService

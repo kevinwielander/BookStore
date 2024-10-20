@@ -4,26 +4,19 @@ using BookStore.Mappers;
 using BookStore.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookStore.Repositories;
+namespace BookStore.Repositories.Implementation;
 
-public class AuditRepository : IAuditRepository
+public class AuditRepository(BookStoreContext context) : IAuditRepository
 {
-    private readonly BookStoreContext _context;
-
-    public AuditRepository(BookStoreContext context)
-    {
-        _context = context;
-    }
-
     public async Task AddAuditLogAsync(BookAuditLog auditLog)
     {
-        _context.AuditLogs.Add(auditLog);
-        await _context.SaveChangesAsync();
+        context.AuditLogs.Add(auditLog);
+        await context.SaveChangesAsync();
     }
 
    public async Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParamsDto queryParameters)
     {
-        var query = _context.AuditLogs.AsQueryable();
+        var query = context.AuditLogs.AsQueryable();
         
         if (!string.IsNullOrEmpty(queryParameters.FilterKey) && !string.IsNullOrEmpty(queryParameters.FilterValue))
         {
