@@ -25,7 +25,7 @@ public class BookRepository(BookStoreContext context, ILogger<BookRepository> lo
         var book = await context.Set<Book>().FindAsync(isbn);
         if (book == null)
         {
-            throw new KeyNotFoundException($"Book with isbn {isbn} not found");
+            throw new BookNotFoundException(isbn);
         }
 
         return book;
@@ -47,7 +47,7 @@ public class BookRepository(BookStoreContext context, ILogger<BookRepository> lo
         var existingBook = await context.Set<Book>().FindAsync(book.Isbn);
         if (existingBook == null)
         {
-            throw new KeyNotFoundException($"Book with id {book.Isbn} not found");
+            throw new BookNotFoundException(book.Isbn);
         }
         context.Entry(existingBook).CurrentValues.SetValues(book);
         await context.SaveChangesAsync();
@@ -58,7 +58,7 @@ public class BookRepository(BookStoreContext context, ILogger<BookRepository> lo
         var book = await context.Set<Book>().FindAsync(isbn);
         if (book == null)
         {
-            throw new KeyNotFoundException($"Book with id {isbn} not found");
+            throw new BookNotFoundException(isbn);
         }
         context.Set<Book>().Remove(book);
         await context.SaveChangesAsync();

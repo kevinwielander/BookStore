@@ -4,6 +4,7 @@ using BookStore.Exceptions;
 using BookStore.Mappers;
 using BookStore.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Controllers;
 
@@ -40,10 +41,10 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
             var bookDto = BookMapper.ToDto(book);
             return Ok(bookDto);
         }
-        catch (KeyNotFoundException)
+        catch (BookNotFoundException ex)
         {
-            logger.LogWarning("Book with ISBN {Isbn} not found", isbn);
-            return NotFound($"Book with ISBN {isbn} not found");
+            logger.LogWarning(ex,"Book with ISBN {Isbn} not found", isbn);
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
@@ -91,25 +92,25 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
 
         try
         {
-            logger.LogInformation("Updating book with ISBN {Isbn}", isbn);
             var book = BookMapper.ToModel(bookDto);
+            logger.LogInformation("Updating book with ISBN {Isbn}", isbn);
             await bookService.UpdateBookAsync(book);
             return NoContent();
         }
-        catch (KeyNotFoundException ex)
+        catch (BookNotFoundException ex)
         {
             logger.LogWarning(ex, "Book with ISBN {Isbn} not found for update", isbn);
             return NotFound($"Book with ISBN {isbn} not found");
         }
-        catch (DBConcurrencyException ex)
+        catch (DbUpdateConcurrencyException ex)
         {
-            logger.LogError(ex, "Concurrency conflict detected for book with ISBN {Isbn}", isbn);
-            return Conflict(ex.Message);
+            logger.LogWarning(ex, "Concurrency conflict while updating book with ISBN {Isbn}", isbn);
+            return Conflict("The book was modified by another user. Please refresh and try again.");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error occurred while updating book with ISBN {Isbn}", isbn);
-            return StatusCode(500, $"An error occurred while updating the book with ISBN {isbn}");
+            return StatusCode(500, "An unexpected error occurred while updating the book");
         }
     }
 
@@ -122,10 +123,10 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
             await bookService.DeleteBookAsync(isbn);
             return NoContent();
         }
-        catch (KeyNotFoundException ex)
+        catch (BookNotFoundException ex)
         {
-            logger.LogWarning(ex, "Book with ISBN {Isbn} not found for deletion", isbn);
-            return NotFound($"Book with ISBN {isbn} not found");
+            logger.LogWarning(ex, "Book with ISBN {Isbn} not found", isbn);
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {

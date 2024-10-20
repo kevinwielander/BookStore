@@ -13,7 +13,8 @@ public class BookMapper
             Title = book.Title,
             Description = book.Description,
             PublishDate = book.PublishDate,
-            Authors = book.Authors
+            Authors = book.Authors,
+            RowVersion = new byte[8]
         };
     }
 
@@ -25,7 +26,8 @@ public class BookMapper
             Title = bookDto.Title,
             Description = bookDto.Description,
             PublishDate = bookDto.PublishDate,
-            Authors = bookDto.Authors
+            Authors = bookDto.Authors,
+            RowVersion = new byte[8]
         };
     }
 }

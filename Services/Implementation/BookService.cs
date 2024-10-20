@@ -11,115 +11,78 @@ public class BookService(IBookRepository bookRepository, ILogger<BookService> lo
 {
     public async Task<List<Book>> GetAllBooksAsync()
     {
-        try
-        {
-            logger.LogTrace("Retrieving all books");
-            var books = await bookRepository.GetBooksAsync();
-            return [..books];
-        }
-        catch (Exception ex)
-        {
-            logger.LogError("Error retrieving books!");
-            throw new ApplicationException("Error occurred while fetching all books", ex);
-        }
+        logger.LogTrace("Retrieving all books");
+        var books = await bookRepository.GetBooksAsync();
+        return [..books];
     }
 
     public async Task<Book> GetBookByIdAsync(string isbn)
     {
-        try
-        {
-            logger.LogTrace("Retrieving book with isbn {isbn}", isbn);
-            var book = await bookRepository.GetBookByIdAsync(isbn);
-            return book;
-        }
-        catch (KeyNotFoundException)
-        { 
-            throw;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError("Error retrieving book with isbn {isbn}", isbn);
-            throw new ApplicationException($"Error occurred while fetching book with isbn {isbn}", ex);
-        }
+        logger.LogTrace("Retrieving book with isbn {isbn}", isbn);
+        var book = await bookRepository.GetBookByIdAsync(isbn);
+        return book;
     }
 
     public async Task<Book> AddBookAsync(Book book)
     {
-        try
+        logger.LogTrace("Adding book: {@book}",book);
+        await bookRepository.AddBookAsync(book);
+        await auditService.LogChangeAsync(book.Isbn, "Created", new Dictionary<string, object>
         {
-            logger.LogTrace("Adding book: {@book}",book);
-            await bookRepository.AddBookAsync(book);
-            await auditService.LogChangeAsync(book.Isbn, "Created", new Dictionary<string, object>
-            {
-                { "Title", book.Title },
-                { "Description", book.Description },
-                { "PublishDate", book.PublishDate },
-                { "Authors", book.Authors }
-            });
-            return book;
-        }
-        catch (BookAlreadyExistsException ex)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        { 
-            throw new ApplicationException("Error occurred while adding a new book", ex);
-        }
+            { "Title", book.Title },
+            { "Description", book.Description },
+            { "PublishDate", book.PublishDate },
+            { "Authors", book.Authors }
+        });
+        return book;
     }
 
     public async Task UpdateBookAsync(Book book)
     {
-        try
+        logger.LogTrace("Updating book: {@book}", book);
+        var originalBook = await bookRepository.GetBookByIdAsync(book.Isbn);
+
+        if (originalBook == null)
         {
-            logger.LogTrace("Updating book: {@book}", book);
-            var originalBook = await bookRepository.GetBookByIdAsync(book.Isbn);
-
-            var originalTitle = originalBook.Title;
-            var originalDescription = originalBook.Description;
-            var originalPublishDate = originalBook.PublishDate;
-            var originalAuthors = originalBook.Authors.ToList();
-
-            await bookRepository.UpdateBookAsync(book);
-
-            var changes = new Dictionary<string, object>();
-            if (originalTitle != book.Title)
-                changes["Title"] = new { Old = originalTitle, New = book.Title };
-            if (originalDescription != book.Description)
-                changes["Description"] = new { Old = originalDescription, New = book.Description };
-            if (originalPublishDate != book.PublishDate)
-                changes["PublishDate"] = new { Old = originalPublishDate, New = book.PublishDate };
-            if (!originalAuthors.SequenceEqual(book.Authors))
-                changes["Authors"] = new { Old = originalAuthors, New = book.Authors };
-
-            if (changes.Count != 0)
-            {
-                await auditService.LogChangeAsync(book.Isbn, "Updated", changes);
-            }
+            throw new BookNotFoundException(book.Isbn);
         }
-        catch (Exception ex)
+        
+        var originalValues = new
         {
-            throw new ApplicationException($"Error occurred while updating book with isbn {book.Isbn}", ex);
+            Title = originalBook.Title,
+            Description = originalBook.Description,
+            PublishDate = originalBook.PublishDate,
+            Authors = originalBook.Authors.ToList()
+        };
+
+        await bookRepository.UpdateBookAsync(book);
+
+        var changes = new Dictionary<string, object>();
+        if (originalValues.Title != book.Title)
+            changes["Title"] = new { Old = originalValues.Title, New = book.Title };
+        if (originalValues.Description != book.Description)
+            changes["Description"] = new { Old = originalValues.Description, New = book.Description };
+        if (originalValues.PublishDate != book.PublishDate)
+            changes["PublishDate"] = new { Old = originalValues.PublishDate, New = book.PublishDate };
+        if (!originalValues.Authors.SequenceEqual(book.Authors))
+            changes["Authors"] = new { Old = originalValues.Authors, New = book.Authors };
+
+        if (changes.Count != 0)
+        {
+            await auditService.LogChangeAsync(book.Isbn, "Updated", changes);
         }
     }
     public async Task DeleteBookAsync(string isbn)
     {
-        try
+        logger.LogTrace("Deleting book with isbn {isbn}", isbn);
+        var book = await bookRepository.GetBookByIdAsync(isbn);
+        await bookRepository.DeleteBookAsync(isbn);
+        await auditService.LogChangeAsync(isbn, "Deleted", new Dictionary<string, object>
         {
-            logger.LogTrace("Deleting book with isbn {isbn}", isbn);
-            var book = await bookRepository.GetBookByIdAsync(isbn);
-            await bookRepository.DeleteBookAsync(isbn);
-            await auditService.LogChangeAsync(isbn, "Deleted", new Dictionary<string, object>
-            {
-                { "Title", book.Title },
-                { "Description", book.Description },
-                { "PublishDate", book.PublishDate },
-                { "Authors", book.Authors }
-            });
-        }
-        catch (Exception ex)
-        {
-            throw new ApplicationException($"Error occurred while deleting book with isbn {isbn}", ex);
-        }
+            { "Title", book.Title },
+            { "Description", book.Description },
+            { "PublishDate", book.PublishDate },
+            { "Authors", book.Authors }
+        });
     }
 }
