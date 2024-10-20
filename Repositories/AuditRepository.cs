@@ -40,7 +40,7 @@ public class AuditRepository : IAuditRepository
         {
             query = queryParameters.OrderKey.ToLower() switch
             {
-                "timestamp" => queryParameters.IsDescending ?? true
+                "changeTime" => queryParameters.IsDescending ?? true
                     ? query.OrderByDescending(log => log.Timestamp)
                     : query.OrderBy(log => log.Timestamp),
                 "isbn" => queryParameters.IsDescending ?? true
@@ -70,7 +70,6 @@ public class AuditRepository : IAuditRepository
         {
             bookLogDtos = queryParameters.GroupByKey.ToLower() switch
             {
-                "isbn" => bookLogDtos.GroupBy(log => log.Isbn).SelectMany(g => g).ToList(),
                 "action" => bookLogDtos.GroupBy(log => log.Action).SelectMany(g => g).ToList(),
                 _ => bookLogDtos.GroupBy(log => log.ChangeTime.Date).SelectMany(g => g).ToList()
             };
