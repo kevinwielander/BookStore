@@ -1,4 +1,5 @@
 using BookStore.DTOs;
+using BookStore.Exceptions;
 using BookStore.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -61,6 +62,11 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
             var createdBook = await bookService.AddBookAsync(bookDto);
             logger.LogInformation("Book added successfully with ISBN {Isbn}", createdBook.Isbn);
             return CreatedAtAction(nameof(GetBookByIsbn), new { isbn = createdBook.Isbn }, createdBook);
+        }
+        catch (BookAlreadyExistsException ex)
+        {
+            logger.LogWarning(ex, "Attempt to add a book with existing ISBN {Isbn}", ex.Isbn);
+            return Conflict(ex.Message);
         }
         catch (Exception ex)
         {

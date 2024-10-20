@@ -8,7 +8,7 @@ public class BookLogMapper
 {
     public static BookLogDto ToDto(BookAuditLog auditLog)
     {
-        var changes = JsonSerializer.Deserialize<Dictionary<string, object>>(auditLog.ChangeDetails);
+        var changes = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(auditLog.ChangeDetails);
         string description = GenerateDescription(auditLog.Action, changes);
 
         return new BookLogDto
@@ -20,7 +20,7 @@ public class BookLogMapper
         };
     }
 
-    private static string GenerateDescription(string action, Dictionary<string, object> changes)
+    private static string GenerateDescription(string action, Dictionary<string, JsonElement> changes)
     {
         switch (action)
         {
@@ -29,13 +29,23 @@ public class BookLogMapper
             case "Updated":
                 return string.Join(", ", changes.Select(c => 
                 {
-                    var change = JsonSerializer.Deserialize<Dictionary<string, string>>(c.Value.ToString());
-                    return $"{c.Key} was changed from '{change["Old"]}' to '{change["New"]}'";
+                    var oldValue = FormatJsonElement(c.Value.GetProperty("Old"));
+                    var newValue = FormatJsonElement(c.Value.GetProperty("New"));
+                    return $"{c.Key} was changed from '{oldValue}' to '{newValue}'";
                 }));
             case "Deleted":
                 return "Book was deleted";
             default:
                 return "Unknown action";
         }
+    }
+
+    private static string FormatJsonElement(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.Array => string.Join(", ", element.EnumerateArray().Select(e => e.GetString())),
+            _ => element.GetString() ?? string.Empty
+        };
     }
 }

@@ -1,4 +1,5 @@
 using BookStore.DTOs;
+using BookStore.Exceptions;
 using BookStore.Repositories;
 
 namespace BookStore.Services;
@@ -54,6 +55,10 @@ public class BookService(IBookRepository bookRepository, ILogger<BookService> lo
                 { "Authors", bookDto.Authors }
             });
             return bookDto;
+        }
+        catch (BookAlreadyExistsException ex)
+        {
+            throw;
         }
         catch (Exception ex)
         { 

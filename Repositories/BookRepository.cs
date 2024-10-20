@@ -1,4 +1,5 @@
 using BookStore.DTOs;
+using BookStore.Exceptions;
 using BookStore.Mappers;
 using BookStore.Models;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +42,11 @@ public class BookRepository : IBookRepository
 
     public async Task AddBookAsync(BookDto bookDto)
     {
+        var existingBook = await _context.Set<Book>().FindAsync(bookDto.Isbn);
+        if (existingBook != null)
+        {
+            throw new BookAlreadyExistsException(bookDto.Isbn);
+        }
         var book = BookMapper.ToModel(bookDto);
         await _context.Set<Book>().AddAsync(book);
         await _context.SaveChangesAsync();
