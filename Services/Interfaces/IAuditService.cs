@@ -1,6 +1,10 @@
+using BookStore.Data;
+using BookStore.DTOs;
+
 namespace BookStore.Services;
 
-public class IAuditService
+public interface IAuditService
 {
-    
+    Task LogChangeAsync(string isbn, string action, Dictionary<string, object> changes);
+    Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParamsDto queryParameters); 
 }

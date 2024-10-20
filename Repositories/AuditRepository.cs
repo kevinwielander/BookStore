@@ -1,5 +1,6 @@
 using BookStore.Data;
 using BookStore.DTOs;
+using BookStore.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Repositories;
@@ -19,35 +20,48 @@ public class AuditRepository : IAuditRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<PagedResultDto<BookAuditLog>> GetAuditLogsAsync(BookAuditQueryParamsDto queryParameters)
+    public async Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParamsDto queryParameters)
     {
         var query = _context.AuditLogs.AsQueryable();
-        
-        if (queryParameters.Filters.TryGetValue("Isbn", out var isbn))
+    
+        if (queryParameters.Filters != null && queryParameters.Filters.TryGetValue("Isbn", out var isbn))
         {
             query = query.Where(log => log.Isbn == isbn);
         }
-        
-        query = queryParameters.OrderBy.ToLower() switch
+    
+        if (!string.IsNullOrEmpty(queryParameters.OrderBy))
         {
-            "timestamp" => queryParameters.IsDescending 
-                ? query.OrderByDescending(log => log.Timestamp) 
-                : query.OrderBy(log => log.Timestamp),
-        };
+            query = queryParameters.OrderBy.ToLower() switch
+            {
+                "timestamp" => queryParameters.IsDescending ?? true
+                    ? query.OrderByDescending(log => log.Timestamp) 
+                    : query.OrderBy(log => log.Timestamp),
+                _ => query.OrderByDescending(log => log.Timestamp)
+            };
+        }
+        else
+        {
+            query = query.OrderByDescending(log => log.Timestamp);
+        }
 
         var totalCount = await query.CountAsync();
 
+        var pageNumber = queryParameters.PageNumber ?? 1;
+        var pageSize = queryParameters.PageSize ?? 10;
+
         var auditLogs = await query
-            .Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)
-            .Take(queryParameters.PageSize)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return new PagedResultDto<BookAuditLog>
+        var bookLogDtos = auditLogs.Select(BookLogMapper.ToDto).ToList();
+
+        return new PagedResultDto<BookLogDto>
         {
-            Items = auditLogs,
+            Items = bookLogDtos,
             TotalCount = totalCount,
-            PageNumber = queryParameters.PageNumber,
-            PageSize = queryParameters.PageSize
+            PageNumber = pageNumber,
+            PageSize = pageSize
         };
     }
 }

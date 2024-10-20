@@ -3,29 +3,20 @@ using BookStore.Repositories;
 
 namespace BookStore.Services;
 
-public class BookService : IBookService
+public class BookService(IBookRepository bookRepository, ILogger<BookService> logger, IAuditService auditService)
+    : IBookService
 {
-    private readonly IBookRepository _bookRepository;
-    private readonly ILogger<BookService> _logger;
-
-    public BookService(IBookRepository bookRepository, ILogger<BookService> logger)
-    {
-        _bookRepository = bookRepository;
-        _logger = logger;
-    }
-
-
     public async Task<List<BookDto>> GetAllBooksAsync()
     {
         try
         {
-            _logger.LogTrace("Retrieving all books");
-            var books = await _bookRepository.GetBooksAsync();
+            logger.LogTrace("Retrieving all books");
+            var books = await bookRepository.GetBooksAsync();
             return [..books];
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error retrieving books!");
+            logger.LogError("Error retrieving books!");
             throw new ApplicationException("Error occurred while fetching all books", ex);
         }
     }
@@ -34,8 +25,8 @@ public class BookService : IBookService
     {
         try
         {
-            _logger.LogTrace("Retrieving book with isbn {isbn}", isbn);
-            var book = await _bookRepository.GetBookByIdAsync(isbn);
+            logger.LogTrace("Retrieving book with isbn {isbn}", isbn);
+            var book = await bookRepository.GetBookByIdAsync(isbn);
             return book;
         }
         catch (KeyNotFoundException)
@@ -44,7 +35,7 @@ public class BookService : IBookService
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error retrieving book with isbn {isbn}", isbn);
+            logger.LogError("Error retrieving book with isbn {isbn}", isbn);
             throw new ApplicationException($"Error occurred while fetching book with isbn {isbn}", ex);
         }
     }
@@ -53,8 +44,15 @@ public class BookService : IBookService
     {
         try
         {
-            _logger.LogTrace("Adding book: {@bookDto}",bookDto);
-            await _bookRepository.AddBookAsync(bookDto);
+            logger.LogTrace("Adding book: {@bookDto}",bookDto);
+            await bookRepository.AddBookAsync(bookDto);
+            await auditService.LogChangeAsync(bookDto.Isbn, "Created", new Dictionary<string, object>
+            {
+                { "Title", bookDto.Title },
+                { "Description", bookDto.Description },
+                { "PublishDate", bookDto.PublishDate },
+                { "Authors", bookDto.Authors }
+            });
             return bookDto;
         }
         catch (Exception ex)
@@ -67,12 +65,26 @@ public class BookService : IBookService
     {
         try
         {
-            _logger.LogTrace("Updating book: {@bookDto}",bookDto);
-            await _bookRepository.UpdateBookAsync(bookDto);
-        }
-        catch (KeyNotFoundException)
-        {
-            throw;
+            logger.LogTrace("Updating book: {@bookDto}",bookDto);
+            await bookRepository.UpdateBookAsync(bookDto);
+            logger.LogTrace("Updating book: {@bookDto}", bookDto);
+            var originalBook = await bookRepository.GetBookByIdAsync(bookDto.Isbn);
+            await bookRepository.UpdateBookAsync(bookDto);
+        
+            var changes = new Dictionary<string, object>();
+            if (originalBook.Title != bookDto.Title)
+                changes["Title"] = new { Old = originalBook.Title, New = bookDto.Title };
+            if (originalBook.Description != bookDto.Description)
+                changes["Description"] = new { Old = originalBook.Description, New = bookDto.Description };
+            if (originalBook.PublishDate != bookDto.PublishDate)
+                changes["PublishDate"] = new { Old = originalBook.PublishDate, New = bookDto.PublishDate };
+            if (!originalBook.Authors.SequenceEqual(bookDto.Authors))
+                changes["Authors"] = new { Old = originalBook.Authors, New = bookDto.Authors };
+
+            if (changes.Count != 0)
+            {
+                await auditService.LogChangeAsync(bookDto.Isbn, "Updated", changes);
+            }
         }
         catch (Exception ex)
         {
@@ -83,12 +95,16 @@ public class BookService : IBookService
     {
         try
         {
-            _logger.LogTrace("Deleting book with isbn {isbn}", isbn);
-            await _bookRepository.DeleteBookAsync(isbn);
-        }
-        catch (KeyNotFoundException)
-        {
-            throw;
+            logger.LogTrace("Deleting book with isbn {isbn}", isbn);
+            var book = await bookRepository.GetBookByIdAsync(isbn);
+            await bookRepository.DeleteBookAsync(isbn);
+            await auditService.LogChangeAsync(isbn, "Deleted", new Dictionary<string, object>
+            {
+                { "Title", book.Title },
+                { "Description", book.Description },
+                { "PublishDate", book.PublishDate },
+                { "Authors", book.Authors }
+            });
         }
         catch (Exception ex)
         {
