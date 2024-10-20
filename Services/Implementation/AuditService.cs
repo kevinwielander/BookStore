@@ -24,6 +24,7 @@ public class AuditService(IAuditRepository auditRepository, ILogger<AuditService
 
     public async Task<AuditPageResult<BookAuditLog>> GetAuditLogsAsync(BookLogQueryParams queryParameters)
     {
+        logger.LogTrace("GetAuditLogsAsync");
         return await auditRepository.GetAuditLogsAsync(queryParameters);
     }
 }

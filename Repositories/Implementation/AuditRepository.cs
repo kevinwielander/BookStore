@@ -6,16 +6,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Repositories.Implementation;
 
-public class AuditRepository(BookStoreContext context) : IAuditRepository
+public class AuditRepository(BookStoreContext context, ILogger<AuditRepository> logger) : IAuditRepository
 {
     public async Task AddAuditLogAsync(BookAuditLog auditLog)
     {
+        logger.LogTrace("Adding audit log for ISBN: {ISBN}, Action: {Action}", auditLog.Isbn, auditLog.Action);
         context.AuditLogs.Add(auditLog);
         await context.SaveChangesAsync();
     }
 
    public async Task<AuditPageResult<BookAuditLog>> GetAuditLogsAsync(BookLogQueryParams queryParameters)
     {
+        logger.LogTrace("Retrieving audit logs with parameters: {@QueryParameters}", queryParameters);
         var query = context.AuditLogs.AsQueryable();
         
         if (!string.IsNullOrEmpty(queryParameters.FilterKey) && !string.IsNullOrEmpty(queryParameters.FilterValue))
@@ -28,6 +30,7 @@ public class AuditRepository(BookStoreContext context) : IAuditRepository
                 "description" => query.Where(log => log.ChangeDetails.ToLower().Contains(filterValue)),
                 _ => query
             };
+            logger.LogDebug("Applied filter: {FilterKey} = {FilterValue}", queryParameters.FilterKey, queryParameters.FilterValue);
         }
         
         if (!string.IsNullOrEmpty(queryParameters.OrderKey))
@@ -45,6 +48,7 @@ public class AuditRepository(BookStoreContext context) : IAuditRepository
                     : query.OrderBy(log => log.Action),
                 _ => query.OrderByDescending(log => log.Timestamp)
             };
+            logger.LogDebug("Applied ordering: {OrderKey}, Descending: {IsDescending}", queryParameters.OrderKey, queryParameters.IsDescending);
         }
         else
         {
