@@ -5,10 +5,11 @@ using BookStore.Repositories;
 
 namespace BookStore.Services.Implementation;
 
-public class AuditService(IAuditRepository auditRepository) : IAuditService
+public class AuditService(IAuditRepository auditRepository, ILogger<AuditService> logger) : IAuditService
 {
     public async Task LogChangeAsync(string isbn, string action, Dictionary<string, object> changes)
-    {
+    {   
+        
         var auditLog = new BookAuditLog
         {
             Isbn = isbn,
@@ -16,6 +17,7 @@ public class AuditService(IAuditRepository auditRepository) : IAuditService
             Action = action,
             Changes = changes
         };
+        logger.LogDebug("Audit log: {@auditLog}", auditLog);
 
         await auditRepository.AddAuditLogAsync(auditLog);
     }

@@ -1,3 +1,4 @@
+using System.Data;
 using BookStore.DTOs;
 using BookStore.Exceptions;
 using BookStore.Models;
@@ -73,19 +74,24 @@ public class BookService(IBookRepository bookRepository, ILogger<BookService> lo
         {
             logger.LogTrace("Updating book: {@book}", book);
             var originalBook = await bookRepository.GetBookByIdAsync(book.Isbn);
+
+            var originalTitle = originalBook.Title;
+            var originalDescription = originalBook.Description;
+            var originalPublishDate = originalBook.PublishDate;
+            var originalAuthors = originalBook.Authors.ToList();
+
             await bookRepository.UpdateBookAsync(book);
-        
+
             var changes = new Dictionary<string, object>();
-            if (originalBook.Title != book.Title)
-                changes["Title"] = new { Old = originalBook.Title, New = book.Title };
-            if (originalBook.Description != book.Description)
-                changes["Description"] = new { Old = originalBook.Description, New = book.Description };
-            if (originalBook.PublishDate != book.PublishDate)
-                changes["PublishDate"] = new { Old = originalBook.PublishDate, New = book.PublishDate };
-            if (!originalBook.Authors.SequenceEqual(book.Authors))
-                changes["Authors"] = new { Old = originalBook.Authors, New = book.Authors };
-            
-            logger.LogDebug("Changes detected: {@Changes}", changes);
+            if (originalTitle != book.Title)
+                changes["Title"] = new { Old = originalTitle, New = book.Title };
+            if (originalDescription != book.Description)
+                changes["Description"] = new { Old = originalDescription, New = book.Description };
+            if (originalPublishDate != book.PublishDate)
+                changes["PublishDate"] = new { Old = originalPublishDate, New = book.PublishDate };
+            if (!originalAuthors.SequenceEqual(book.Authors))
+                changes["Authors"] = new { Old = originalAuthors, New = book.Authors };
+
             if (changes.Count != 0)
             {
                 await auditService.LogChangeAsync(book.Isbn, "Updated", changes);

@@ -10,4 +10,7 @@ public class Book
     public string Description { get; set; }
     public DateOnly PublishDate { get; set; }
     public List<string> Authors { get; set; }
+    
+    [Timestamp]
+    public byte[] RowVersion { get; set; }
 }

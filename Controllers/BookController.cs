@@ -1,3 +1,4 @@
+using System.Data;
 using BookStore.DTOs;
 using BookStore.Exceptions;
 using BookStore.Mappers;
@@ -99,6 +100,11 @@ public class BookController(IBookService bookService, ILogger<BookController> lo
         {
             logger.LogWarning(ex, "Book with ISBN {Isbn} not found for update", isbn);
             return NotFound($"Book with ISBN {isbn} not found");
+        }
+        catch (DBConcurrencyException ex)
+        {
+            logger.LogError(ex, "Concurrency conflict detected for book with ISBN {Isbn}", isbn);
+            return Conflict(ex.Message);
         }
         catch (Exception ex)
         {
