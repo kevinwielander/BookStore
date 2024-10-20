@@ -21,5 +21,4 @@ public class BookDto
     [Required(ErrorMessage = "At least one author is required")]
     public List<string> Authors { get; set; }
     
-    public byte[]? RowVersion { get; set; }
 }

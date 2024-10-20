@@ -14,7 +14,6 @@ public class BookMapper
             Description = book.Description,
             PublishDate = book.PublishDate,
             Authors = book.Authors,
-            RowVersion = new byte[8]
         };
     }
 
