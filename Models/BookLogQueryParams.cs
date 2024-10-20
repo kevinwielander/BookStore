@@ -1,6 +1,6 @@
 namespace BookStore.DTOs;
 
-public class BookLogQueryParamsDto
+public class BookLogQueryParams
 {
     public string? FilterKey { get; set; }
     public string? FilterValue { get; set; }

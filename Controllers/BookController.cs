@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookStore.Controllers;
 
-[Route("api/v1/[controller]")]
+[Route("api/v1/books")]
 [ApiController]
 
 public class BookController(IBookService bookService, ILogger<BookController> logger) : ControllerBase

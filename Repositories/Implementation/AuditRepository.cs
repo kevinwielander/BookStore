@@ -14,7 +14,7 @@ public class AuditRepository(BookStoreContext context) : IAuditRepository
         await context.SaveChangesAsync();
     }
 
-   public async Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParamsDto queryParameters)
+   public async Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParams queryParameters)
     {
         var query = context.AuditLogs.AsQueryable();
         

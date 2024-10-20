@@ -7,5 +7,5 @@ namespace BookStore.Repositories;
 public interface IAuditRepository
 {
     Task AddAuditLogAsync(BookAuditLog auditLog);
-    Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParamsDto queryParameters);
+    Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParams queryParameters);
 }

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookStore.Controllers;
 
 
-[Route("api/v1/[controller]")]
+[Route("api/v1/book-audits")]
 [ApiController]
 public class BookAuditController(IAuditService auditService, ILogger<BookAuditController> logger) : ControllerBase
 {
@@ -23,7 +23,7 @@ public class BookAuditController(IAuditService auditService, ILogger<BookAuditCo
         try
         {
             logger.LogInformation("Retrieving book audit logs");
-            var queryParameters = new BookLogQueryParamsDto
+            var queryParameters = new BookLogQueryParams
             {
                 FilterKey = filterKey,
                 FilterValue = filterValue,
