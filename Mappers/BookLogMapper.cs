@@ -1,6 +1,7 @@
 using System.Text.Json;
 using BookStore.Data;
 using BookStore.DTOs;
+using BookStore.Models;
 
 namespace BookStore.Mappers;
 

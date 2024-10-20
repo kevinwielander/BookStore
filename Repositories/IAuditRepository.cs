@@ -1,5 +1,6 @@
 using BookStore.Data;
 using BookStore.DTOs;
+using BookStore.Models;
 
 namespace BookStore.Repositories;
 

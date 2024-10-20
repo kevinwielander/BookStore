@@ -1,6 +1,7 @@
 using BookStore.Data;
 using BookStore.DTOs;
 using BookStore.Mappers;
+using BookStore.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Repositories;

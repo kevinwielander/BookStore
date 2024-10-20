@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
-namespace BookStore.Data;
+namespace BookStore.Models;
 
 public class BookAuditLog
 {
