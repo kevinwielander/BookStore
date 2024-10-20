@@ -11,12 +11,28 @@ namespace BookStore.Controllers;
 public class BookAuditController(IAuditService auditService, ILogger<BookAuditController> logger) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<PagedResultDto<BookAuditLog>>> GetAuditBooksAsync(
-        [FromQuery] BookLogQueryParamsDto queryParameters)
+    public async Task<ActionResult<PagedResultDto<BookLogDto>>> GetAuditBooksAsync(
+        [FromQuery] string? filterKey,
+        [FromQuery] string? filterValue,
+        [FromQuery] string? orderKey,
+        [FromQuery] bool? isDescending,
+        [FromQuery] string? groupByKey,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
     {
         try
         {
             logger.LogInformation("Retrieving book audit logs");
+            var queryParameters = new BookLogQueryParamsDto
+            {
+                FilterKey = filterKey,
+                FilterValue = filterValue,
+                OrderKey = orderKey,
+                IsDescending = isDescending,
+                GroupByKey = groupByKey,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
             var result = await auditService.GetAuditLogsAsync(queryParameters);
             return Ok(result);
         }

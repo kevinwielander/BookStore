@@ -20,22 +20,35 @@ public class AuditRepository : IAuditRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParamsDto queryParameters)
+   public async Task<PagedResultDto<BookLogDto>> GetAuditLogsAsync(BookLogQueryParamsDto queryParameters)
     {
         var query = _context.AuditLogs.AsQueryable();
-    
-        if (queryParameters.Filters != null && queryParameters.Filters.TryGetValue("Isbn", out var isbn))
+        
+        if (!string.IsNullOrEmpty(queryParameters.FilterKey) && !string.IsNullOrEmpty(queryParameters.FilterValue))
         {
-            query = query.Where(log => log.Isbn == isbn);
+            var filterValue = queryParameters.FilterValue.ToLower();
+            query = queryParameters.FilterKey.ToLower() switch
+            {
+                "isbn" => query.Where(log => log.Isbn.ToLower().Contains(filterValue)),
+                "action" => query.Where(log => log.Action.ToLower().Contains(filterValue)),
+                "description" => query.Where(log => log.ChangeDetails.ToLower().Contains(filterValue)),
+                _ => query
+            };
         }
-    
-        if (!string.IsNullOrEmpty(queryParameters.OrderBy))
+        
+        if (!string.IsNullOrEmpty(queryParameters.OrderKey))
         {
-            query = queryParameters.OrderBy.ToLower() switch
+            query = queryParameters.OrderKey.ToLower() switch
             {
                 "timestamp" => queryParameters.IsDescending ?? true
-                    ? query.OrderByDescending(log => log.Timestamp) 
+                    ? query.OrderByDescending(log => log.Timestamp)
                     : query.OrderBy(log => log.Timestamp),
+                "isbn" => queryParameters.IsDescending ?? true
+                    ? query.OrderByDescending(log => log.Isbn)
+                    : query.OrderBy(log => log.Isbn),
+                "action" => queryParameters.IsDescending ?? true
+                    ? query.OrderByDescending(log => log.Action)
+                    : query.OrderBy(log => log.Action),
                 _ => query.OrderByDescending(log => log.Timestamp)
             };
         }
@@ -45,23 +58,30 @@ public class AuditRepository : IAuditRepository
         }
 
         var totalCount = await query.CountAsync();
-
-        var pageNumber = queryParameters.PageNumber ?? 1;
-        var pageSize = queryParameters.PageSize ?? 10;
-
+        
         var auditLogs = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
+            .Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)
+            .Take(queryParameters.PageSize)
             .ToListAsync();
 
         var bookLogDtos = auditLogs.Select(BookLogMapper.ToDto).ToList();
+        
+        if (!string.IsNullOrEmpty(queryParameters.GroupByKey))
+        {
+            bookLogDtos = queryParameters.GroupByKey.ToLower() switch
+            {
+                "isbn" => bookLogDtos.GroupBy(log => log.Isbn).SelectMany(g => g).ToList(),
+                "action" => bookLogDtos.GroupBy(log => log.Action).SelectMany(g => g).ToList(),
+                _ => bookLogDtos.GroupBy(log => log.ChangeTime.Date).SelectMany(g => g).ToList()
+            };
+        }
 
         return new PagedResultDto<BookLogDto>
         {
             Items = bookLogDtos,
             TotalCount = totalCount,
-            PageNumber = pageNumber,
-            PageSize = pageSize
+            PageNumber = queryParameters.PageNumber,
+            PageSize = queryParameters.PageSize
         };
     }
 }
