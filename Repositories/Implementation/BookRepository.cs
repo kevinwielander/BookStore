@@ -1,3 +1,4 @@
+using BookStore.Data;
 using BookStore.DTOs;
 using BookStore.Exceptions;
 using BookStore.Mappers;
@@ -8,11 +9,11 @@ namespace BookStore.Repositories;
 
 public class BookRepository : IBookRepository
 {
-    private readonly DbContext _context;
+    private readonly BookStoreContext _context;
     private readonly ILogger<BookRepository> _logger;
     
 
-    public BookRepository(DbContext context, ILogger<BookRepository> logger)
+    public BookRepository(BookStoreContext context, ILogger<BookRepository> logger)
     {
         _context = context;
         _logger = logger;

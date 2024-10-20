@@ -7,8 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<BookStoreContext>(opt => opt.UseInMemoryDatabase("Books"));
-builder.Services.AddScoped<DbContext>(provider => provider.GetService<BookStoreContext>());
-
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
